@@ -28,7 +28,8 @@ class EchoLayer(YowInterfaceLayer):
             self.toLower(messageProtocolEntity.ack(True))
 
         elif messageProtocolEntity.getType() == 'media':
-            self.enviarMensaje(messageProtocolEntity, "Formato de mensaje no válido.")
+            self.onMediaMessage(messageProtocolEntity)
+            # self.enviarMensaje(messageProtocolEntity, "Formato de mensaje no válido.")
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
@@ -47,7 +48,7 @@ class EchoLayer(YowInterfaceLayer):
 
         self.toLower(outMessage)
 
-    """
+
     def onMediaMessage(self, messageProtocolEntity):
         # just print info
         if messageProtocolEntity.getMediaType() == "image":
@@ -58,4 +59,4 @@ class EchoLayer(YowInterfaceLayer):
 
         elif messageProtocolEntity.getMediaType() == "vcard":
             print("Echoing vcard (%s, %s) to %s" % (messageProtocolEntity.getName(), messageProtocolEntity.getCardData(), messageProtocolEntity.getFrom(False)))
-    """
+

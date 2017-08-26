@@ -201,7 +201,7 @@ class AxolotlReceivelayer(AxolotlBaseLayer):
 
         if not handled:
             print(m)
-            raise ValueError("Unhandled. Type not supported")
+            raise ValueError("Unhandled")
 
     def handleSenderKeyDistributionMessage(self, senderKeyDistributionMessage, axolotlAddress):
         groupId = senderKeyDistributionMessage.groupId
@@ -249,7 +249,7 @@ class AxolotlReceivelayer(AxolotlBaseLayer):
         messageNode["type"] = "media"
         mediaNode = ProtocolTreeNode("media", {
             "latitude": locationMessage.degrees_latitude,
-            "longitude": locationMessage.degress_longitude,
+            "longitude": locationMessage.degrees_longitude,
             "name": "%s %s" % (locationMessage.name, locationMessage.address),
             "url": locationMessage.url,
             "encoding": "raw",
@@ -286,3 +286,4 @@ class AxolotlReceivelayer(AxolotlBaseLayer):
             groupCipher = GroupCipher(self.store, senderKeyName)
             self.groupCiphers[senderKeyName] = groupCipher
         return groupCipher
+    

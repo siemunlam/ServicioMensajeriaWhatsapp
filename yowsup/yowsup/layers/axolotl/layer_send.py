@@ -111,7 +111,7 @@ class AxolotlSendLayer(AxolotlBaseLayer):
                 - send message with dist key for all participants
             yes:
                 - send skmsg without any dist key
-
+                
         received retry for a participant
             - request participants keys
             - send message with dist key only + conversation, only for this participat
@@ -321,3 +321,4 @@ class AxolotlSendLayer(AxolotlBaseLayer):
             groupCipher = GroupCipher(self.store, senderKeyName)
             self.groupCiphers[senderKeyName] = groupCipher
         return groupCipher
+        
