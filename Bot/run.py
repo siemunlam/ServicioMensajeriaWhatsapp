@@ -7,7 +7,13 @@ from yowsup.layers.network import YowNetworkLayer
 credentials = ("5491166036790", "EEu6kzGfv9x0adOjYWai0A+NF/E=") # replace with your phone and password
 
 if __name__==  "__main__":
-	print("Iniciando app")
+	print("")
+	print(" *************************************************************")
+	print(" Agente Virtual SIEM (Sistema Integral de Emergencias Médicas)")
+	print(" *************************************************************")
+	print("")
+	print(" Espeando solicitudes...")
+
 	stackBuilder = YowStackBuilder()
 
 	stack = stackBuilder\
