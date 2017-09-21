@@ -28,7 +28,7 @@ class EchoLayer(YowInterfaceLayer):
         #self.printMessage(messageProtocolEntity)
 
         # TIEMPO RANDOM ENTRE LAS RESPUESTAS PARA QUE NO NOS BLOQUEE WHATSAPP
-        sleep(randint(5, 20)) # en segundos
+        sleep(randint(5, 11)) # en segundos
         
         # VERIFICO QUE NO HAYA PASADO POR LA ETAPA 1 DE LA SOLICITUD
         # SI ES EL PRIMER MENSAJE LE DOY LA BIENVENIDA Y LE SOLICITO LA UBICACIÓN
@@ -92,8 +92,76 @@ class EchoLayer(YowInterfaceLayer):
                 self.enviarMensaje(messageProtocolEntity,msj) 
 
         # SI YA ME ENVIÓ LOS SINTOMAS Y NO LA GRAVEDAD DE CADA UNO
-        #elif interacciones.is_in_motivo_rta(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_sintomas_rta(int(messageProtocolEntity.getFrom(False))) == 0:
-         
+        elif interacciones.is_in_motivo_rta(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_sintona_rta(int(messageProtocolEntity.getFrom(False))) == 0:
+
+            sintomas = interacciones.get_sintomas(int(messageProtocolEntity.getFrom(False)))
+
+            lista = []
+
+            for j in range(len(sintomas)):
+                for i in range(len(opciones)):
+                    if opciones[i][0] == sintomas[j].replace("\n",""):
+                        lista.append(i+1)
+
+            mensaje = messageProtocolEntity.getBody()
+            sintomas_gravedad = mensaje.split(",")
+
+            error = 0
+
+            if len(lista) != len(sintomas_gravedad):
+                error = 1
+
+            if error == 0:
+                for i in range(len(sintomas_gravedad)):
+                    try:
+                        int(sintomas_gravedad[i].strip())
+                    except ValueError:
+                        error = 1
+
+            if error == 0:
+                j = 0
+                for i in range(len(lista)):
+                    if int(sintomas_gravedad[j].strip()) > len(opciones[int(lista[i])-1])-1:
+                        error = 1
+                    j = j + 1
+
+            if len(sintomas) != len(sintomas_gravedad):
+                msj = "No ha ingresado una opción válida. "
+                msj = msj + "Indique la gravedad de cada sintoma separado por coma y en el orden provisto:\n"
+
+                for i in lista:
+                    msj = msj + '\n' + opciones[int(i)-1][0] + ':\n'
+                    for j in range(1,len(opciones[int(i)-1])):
+                        msj = msj + str(j) + '. ' + opciones[int(i)-1][j] + '\n'
+                        j=j+1 
+                
+                self.enviarMensaje(messageProtocolEntity,msj)
+
+            elif error == 1:            
+                msj = "No ha ingresado una opción válida. "
+                msj = msj + "Indique la gravedad de cada sintoma separado por coma y en el orden provisto:\n"
+
+                for i in lista:
+                    msj = msj + '\n' + opciones[int(i)-1][0] + ':\n'
+                    for j in range(1,len(opciones[int(i)-1])):
+                        msj = msj + str(j) + '. ' + opciones[int(i)-1][j] + '\n'
+                        j=j+1 
+                    
+                self.enviarMensaje(messageProtocolEntity,msj)
+
+            else:
+                j=0
+                msj = "Ha seleccionado: \n"
+                sintomas_rta = ''
+                for i in lista:
+                    msj = msj + str(opciones[int(i-1)][0]) + ' -> ' + str(opciones[int(i-1)][int(sintomas_gravedad[int(j)])]) + '\n'
+                    sintomas_rta = sintomas_rta + ' ' + str(opciones[int(i-1)][int(sintomas_gravedad[int(j)])])
+                    j = j + 1
+
+                self.enviarMensaje(messageProtocolEntity,msj)
+                interacciones.add_sintomas_rta(messageProtocolEntity.getFrom(False),sintomas_rta.strip().replace(' ',';'))
+
+
 
         self.toLower(messageProtocolEntity.ack())
         self.toLower(messageProtocolEntity.ack(True))

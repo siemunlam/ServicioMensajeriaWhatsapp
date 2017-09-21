@@ -1,0 +1,3 @@
+-34.6972191;-58.5419846
+Traumatismo;Cefalea;Sangrado
+Leve;Intensa;Masivo

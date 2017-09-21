@@ -12,7 +12,7 @@ if __name__==  "__main__":
 	print(" Agente Virtual SIEM (Sistema Integral de Emergencias Médicas)")
 	print(" *************************************************************")
 	print("")
-	print(" Espeando solicitudes...")
+	print(" Escuchando solicitudes...")
 
 	stackBuilder = YowStackBuilder()
 

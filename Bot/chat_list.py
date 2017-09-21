@@ -51,24 +51,29 @@ class list_interactions():
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
 
+
+	def add_sintomas_rta(self, from_number, sintomas):
+		linea = str(sintomas)
+		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		archivo_inicio = open(arch, 'a')
+		archivo_inicio.write("%s\n" % linea)
+
 	
 	def get_data_inicio(self):
 		return self.inicio
 
-	"""
-	def get_sintomas(self, from_number)
-		sintomas = []
+
+	def get_sintomas(self, from_number):
+		lista = []
 		file = 'files_chat/auxilios/' + str(from_number) + '.txt'
-		arch = open(arch, 'r')
+		arch = open(file,'r')
 		i= 1
 		for line in arch:
 			if i == 2:
-				sintomas.append
-
-
+				line.replace("\n","")
+				lista = line.split(";")
 			i = i+1
-		return 
-	"""
+		return lista
 
 	
 	# METODOS DE BUSQUEDA
@@ -93,4 +98,18 @@ class list_interactions():
 			return 1
 
 
-	
+	def is_in_sintona_rta(self, from_number):
+		lista = []
+		file = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		i = 1
+		for line in arch:
+			if i == 3:
+				line.replace("\n","")
+				lista = line.split(";")
+			i = i+1
+
+		if len(lista) == 0:
+			return 0
+		else:
+			return 1
