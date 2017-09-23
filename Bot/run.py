@@ -8,11 +8,11 @@ credentials = ("5491166036790", "EEu6kzGfv9x0adOjYWai0A+NF/E=") # replace with y
 
 if __name__==  "__main__":
 	print("")
-	print(" *************************************************************")
-	print(" Agente Virtual SIEM (Sistema Integral de Emergencias Médicas)")
-	print(" *************************************************************")
+	print("*************************************************************")
+	print("Agente Virtual SIEM (Sistema Integral de Emergencias Médicas)")
+	print("*************************************************************")
 	print("")
-	print(" Escuchando solicitudes...")
+	print("Escuchando solicitudes...")
 
 	stackBuilder = YowStackBuilder()
 

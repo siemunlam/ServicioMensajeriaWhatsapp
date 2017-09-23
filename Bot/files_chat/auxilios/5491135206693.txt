@@ -1,4 +1,0 @@
--34.697258;-58.5419846
-Traumatismo;Sangrado
-Intermedio;Masivo
-Edad;Ubicacion;Temperatura

@@ -119,10 +119,13 @@ class list_interactions():
 	def get_ajustes_rta(self, from_number):
 		lista = []
 		file = 'files_chat/ajustes/' + str(from_number) + '.txt'
-		arch = open(file,'r')
-		for line in arch:
-			line.replace("\n","")
-			lista = line.split(";")
+		try:
+			arch = open(file,'r')
+			for line in arch:
+				line.replace("\n","")
+				lista = line.split(";")
+		except ValueError:
+			lista = []
 		return lista
 
 
@@ -205,3 +208,7 @@ class list_interactions():
 			if i == 1:
 				arch2.write("%s" % line)
 			i = i+1
+
+
+	#def eliminar_solicitud(self, from_number):
+
