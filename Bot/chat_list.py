@@ -58,6 +58,20 @@ class list_interactions():
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
 
+
+	def add_ajustes(self, from_number, ajustes):
+		linea = str(ajustes)
+		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		archivo_inicio = open(arch, 'a')
+		archivo_inicio.write("%s\n" % linea)
+
+
+	def add_ajustes_rta(self, from_number, ajustes):
+		linea = str(ajustes)
+		arch = 'files_chat/ajustes/' + str(from_number) + '.txt'
+		archivo_inicio = open(arch, 'w')
+		archivo_inicio.write("%s\n" % linea)
+
 	
 	def get_data_inicio(self):
 		return self.inicio
@@ -75,7 +89,56 @@ class list_interactions():
 			i = i+1
 		return lista
 
+
+	def get_sintomas_rta(self, from_number):
+		lista = []
+		file = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		i= 1
+		for line in arch:
+			if i == 3:
+				line.replace("\n","")
+				lista = line.split(";")
+			i = i+1
+		return lista
+
+
+	def get_ajustes(self, from_number):
+		lista = []
+		file = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		i= 1
+		for line in arch:
+			if i == 4:
+				line.replace("\n","")
+				lista = line.split(";")
+			i = i+1
+		return lista
+
+
+	def get_ajustes_rta(self, from_number):
+		lista = []
+		file = 'files_chat/ajustes/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		for line in arch:
+			line.replace("\n","")
+			lista = line.split(";")
+		return lista
+
+
+	def get_ajustes_rta_final(self, from_number):
+		lista = []
+		file = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		i= 1
+		for line in arch:
+			if i == 5:
+				line.replace("\n","")
+				lista = line.split(";")
+			i = i+1
+		return lista
 	
+
 	# METODOS DE BUSQUEDA
 	def is_in_inicio(self, from_number):
 		if from_number not in self.inicio:
@@ -113,3 +176,32 @@ class list_interactions():
 			return 0
 		else:
 			return 1
+
+
+	def is_in_ajustes_rta_final(self, from_number):
+		lista = []
+		file = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		i = 1
+		for line in arch:
+			if i == 5:
+				line.replace("\n","")
+				lista = line.split(";")
+			i = i+1
+
+		if len(lista) == 0:
+			return 0
+		else:
+			return 1
+
+
+	def add_ajustes_rta_finales(self, from_number):
+		file = 'files_chat/ajustes/' + str(from_number) + '.txt'
+		arch = open(file,'r')
+		file2 = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch2 = open(file2, 'a')
+		i = 1
+		for line in arch:
+			if i == 1:
+				arch2.write("%s" % line)
+			i = i+1

@@ -1,3 +1,4 @@
--34.6972191;-58.5419846
-Traumatismo;Cefalea;Sangrado
-Leve;Intensa;Masivo
+-34.697258;-58.5419846
+Traumatismo;Sangrado
+Intermedio;Masivo
+Edad;Ubicacion;Temperatura
