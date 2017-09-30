@@ -1,3 +1,4 @@
+import os
 
 class list_interactions():
     
@@ -210,5 +211,46 @@ class list_interactions():
 			i = i+1
 
 
-	#def eliminar_solicitud(self, from_number):
+	def eliminar_solicitud(self, from_number):
+
+		# INICIO
+		archivo_inicio = open('files_chat\inicio.txt', 'r')
+		lines_inicio = archivo_inicio.readlines()
+		archivo_inicio.close()
+
+		archivo_inicio = open('files_chat\inicio.txt', 'w')
+		for line in lines_inicio:
+			if line!=str(from_number)+"\n":
+				archivo_inicio.write(line)
+		archivo_inicio.close()
+
+		# MOTIVO
+		archivo_motivo = open('files_chat\motivo.txt', 'r')
+		lines_motivo = archivo_motivo.readlines()
+		archivo_motivo.close()
+
+		archivo_motivo = open('files_chat\motivo.txt', 'w')
+		for line in lines_motivo:
+			if line!=str(from_number)+"\n":
+				archivo_motivo.write(line)
+		archivo_motivo.close()
+		
+		# MOTIVO RESPUESTA
+		archivo_motivo_rta = open('files_chat\motivo_rta.txt', 'r')
+		lines_motivo_rta = archivo_motivo_rta.readlines()
+		archivo_motivo_rta.close()
+
+		archivo_motivo_rta = open('files_chat\motivo_rta.txt', 'w')
+		for line in lines_motivo_rta:
+			if line!=str(from_number)+"\n":
+				archivo_motivo_rta.write(line)
+		archivo_motivo_rta.close()
+		
+		# AUXILIO
+		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		os.remove(arch)
+
+		# AJUSTES
+		arch = 'files_chat/ajustes/' + str(from_number) + '.txt'
+		os.remove(arch)
 

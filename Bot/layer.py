@@ -9,21 +9,60 @@ from yowsup.layers.protocol_messages.protocolentities import TextMessageProtocol
 
 from chat_list import list_interactions
 
+import urllib.request
+import json
+
 class EchoLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
 
         # CARGO LAS OPCIONES DE SINTOMAS (FACTORES DE PRECATEGORIZACION)
-        opciones = [['Traumatismo','Leve','Intermedio','Intenso'], 
-                    ['Cefalea','Leve','Intermedia','Intensa','Suprema'], 
-                    ['Sangrado','Leve','Intermedio','Masivo']]
+        # opciones = [['Traumatismo','Leve','Intermedio','Intenso'], 
+        #             ['Cefalea','Leve','Intermedia','Intensa','Suprema'], 
+        #             ['Sangrado','Leve','Intermedio','Masivo']]
+        url_1 = 'http://siemunlam.pythonanywhere.com/api/rules/motivospc/'
+        req_1 = urllib.request.Request(url_1)
+
+        r_1 = urllib.request.urlopen(req_1).read()
+        rta_1 = json.loads(r_1.decode('utf-8'))
+
+        cantidad = rta_1['count']
+        valores = rta_1['results']
+
+        opciones = []
+        opcion_temp = []
+
+        for i in valores:
+            opcion_temp.append(i)
+            for j in valores[i]:
+                opcion_temp.append(j)
+            opciones.append(opcion_temp)
+            opcion_temp = []
+
 
         # CARGO LAS OPCIONES DE LOS AJUSTES
-        opciones_ajustes = [['Edad','Menor a 3 años','Entre 3 y 65 años','Mayor de 65 años'], 
-                            ['Ubicacion','Privada','Via publica'],
-                            ['Temperatura','Menor a 38','Mayor a 38']]
+        # opciones_ajustes = [['Edad','Menor a 3 años','Entre 3 y 65 años','Mayor de 65 años'], 
+        #                     ['Ubicacion','Privada','Via publica'],
+        #                     ['Temperatura','Menor a 38','Mayor a 38']]
+        url_2 = 'http://siemunlam.pythonanywhere.com/api/rules/motivosajuste/'
+        req_2 = urllib.request.Request(url_2)
 
+        r_2 = urllib.request.urlopen(req_2).read()
+        rta_2 = json.loads(r_2.decode('utf-8'))
+
+        cantidad = rta_2['count']
+        valores = rta_2['results']
+
+        opciones_ajustes = []
+        opcion_temp = []
+
+        for i in valores:
+            opcion_temp.append(i)
+            for j in valores[i]:
+                opcion_temp.append(j)
+            opciones_ajustes.append(opcion_temp)
+            opcion_temp = []
 
         interacciones = list_interactions()
         #self.printMessage(messageProtocolEntity)
@@ -294,7 +333,8 @@ class EchoLayer(YowInterfaceLayer):
             elif respuesta.strip().upper() == 'BAJA':
                 # BORRO LAS INTERACCIONES PARA QUE PUEDA SOLICITAR OTROS AUXILIO
                 print("PASO 8: (%s) Cancela ingreso de auxilio." % str(messageProtocolEntity.getFrom(False)))
-                #eliminar_solicitud
+                interacciones.eliminar_solicitud(int(messageProtocolEntity.getFrom(False)))
+                msj = 'Su auxilio ha sido cancelado.'
 
             else:
                 #RESPUESTA INCORRECTA, VUELVO A PREGUNTAR SI ESTA OK CON EL AUXILIO
