@@ -11,6 +11,7 @@ from chat_list import list_interactions
 
 import urllib.request
 import json
+import requests
 
 class EchoLayer(YowInterfaceLayer):
 
@@ -289,6 +290,19 @@ class EchoLayer(YowInterfaceLayer):
                         arch = open(file,'r')
                         i = 1
                         for line in arch:
+                            if i == 1:
+                                geo = line.split(";")
+                                lat = geo[0].replace('\n','').strip()
+                                # print(lat)
+                                lon = geo[1].replace('\n','').strip()
+                                # print(lon)
+                                url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + str(lat) + ',' + str(lon) + '&sensor=true&key=AIzaSyAtqaY7C-E04P3SMY9ANVaQMDsB2I24w8o'
+                                # print(url)
+                                req = urllib.request.Request(url)
+                                r = urllib.request.urlopen(req).read()
+                                rta = json.loads(r.decode('utf-8'))
+                                # print(rta)
+                                ubicacion = 'Ubicacion: ' + rta['results'][0]['formatted_address']
                             if i == 2:
                                 sint = line.split(";")
                             if i == 3:
@@ -298,6 +312,8 @@ class EchoLayer(YowInterfaceLayer):
                             if i == 5:
                                 ajust_rta = line.split(";")
                             i = i + 1
+
+                        msj = msj + ubicacion + '\n'
 
                         for i in range(len(sint)):
                             msj = msj + sint[i].replace('\n','') + ': ' + sint_grav[i].replace('\n','') + '\n'
@@ -327,7 +343,51 @@ class EchoLayer(YowInterfaceLayer):
             if respuesta.strip().upper() == 'OK':
                 # INGRESO EL AUXILIO AL SISTEMA
                 print("PASO 7: (%s) Confirma ingreso de auxilio." % str(messageProtocolEntity.getFrom(False)))
-                codigo_seguimiento = 'JSD35D12' #ingresar_auxilio(messageProtocolEntity.getFrom(False)))
+                
+                # ARMO EL STRING CON FORMATO JSON
+                file = 'files_chat/auxilios/' + str(messageProtocolEntity.getFrom(False)) + '.txt'
+                arch = open(file,'r')
+                i = 1
+                for line in arch:
+                    if i == 1:
+                        geo = line.split(";")
+                        lat = geo[0].replace('\n','').strip()
+                        # print(lat)
+                        lon = geo[1].replace('\n','').strip()
+                        # print(lon)
+                        url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + str(lat) + ',' + str(lon) + '&sensor=true&key=AIzaSyAtqaY7C-E04P3SMY9ANVaQMDsB2I24w8o'
+                        # print(url)
+                        req = urllib.request.Request(url)
+                        r = urllib.request.urlopen(req).read()
+                        rta = json.loads(r.decode('utf-8'))
+                        ubicacion = rta['results'][0]['formatted_address']
+                    if i == 2:
+                        sint = line.split(";")
+                    if i == 3:
+                        sint_grav = line.split(";")
+                    if i == 4:
+                        ajust = line.split(";")
+                    if i == 5:
+                        ajust_rta = line.split(";")
+                    i = i + 1
+
+                motivos_str = ''
+
+                for i in range(len(sint)):
+                    motivos_str = motivos_str + '\\"' + str(sint[i]).replace('\n','').strip() + '\\":\\"' + str(sint_grav[i]).replace('\n','').strip() + '\\",'
+
+                for i in range(len(ajust)):
+                    motivos_str = motivos_str + '\\"' + str(ajust[i]).replace('\n','').strip() + '\\":\\"' + str(ajust_rta[i]).replace('\n','').strip() + '\\",'
+
+                motivos_str = motivos_str[:-1]
+                auxilio_json = '{'+ '"ubicacion":"' + ubicacion + '",' + '"latitud_gps":"' + lat + '",' + '"longitud_gps":"' + lon + '",' + '"motivo":"{' + motivos_str + '}",' + '"origen":"3"' +'}'
+                # print(auxilio_json)
+                data = json.loads(auxilio_json)
+                r = requests.post('http://siemunlam.pythonanywhere.com/api/auxilios/', json=data)
+                respuesta_json = json.loads(r.text)
+                codigo_seguimiento = respuesta_json['codigo_suscripcion']
+                # ME DEVUELVE EL CODIGO DE SUSCRIPCION
+                # codigo_seguimiento = 'JSD35D12' #ingresar_auxilio(messageProtocolEntity.getFrom(False)))
                 msj = 'Su auxilio ha sido ingresado al sistema. Puede realizar el seguimiento a través de SIEM Mobile con el código de seguimiento: ' + codigo_seguimiento
 
             elif respuesta.strip().upper() == 'BAJA':
