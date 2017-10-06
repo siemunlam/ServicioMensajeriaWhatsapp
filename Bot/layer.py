@@ -62,6 +62,7 @@ class EchoLayer(YowInterfaceLayer):
             opcion_temp.append(i)
             for j in valores[i]:
                 opcion_temp.append(j)
+            opcion_temp.append("Sin informacion")
             opciones_ajustes.append(opcion_temp)
             opcion_temp = []
 
@@ -319,7 +320,8 @@ class EchoLayer(YowInterfaceLayer):
                             msj = msj + sint[i].replace('\n','') + ': ' + sint_grav[i].replace('\n','') + '\n'
 
                         for i in range(len(ajust)):
-                            msj = msj + ajust[i].replace('\n','') + ': ' + ajust_rta[i].replace('\n','') + '\n'
+                            if ajust_rta[i].replace('\n','') != "Sin informacion":
+                                msj = msj + ajust[i].replace('\n','') + ': ' + ajust_rta[i].replace('\n','') + '\n'
 
                         msj = msj + '\nPara confirmar envíe OK, de lo contrario envíe la palabra BAJA.'
 
@@ -377,10 +379,12 @@ class EchoLayer(YowInterfaceLayer):
                     motivos_str = motivos_str + '\\"' + str(sint[i]).replace('\n','').strip() + '\\":\\"' + str(sint_grav[i]).replace('\n','').strip() + '\\",'
 
                 for i in range(len(ajust)):
-                    motivos_str = motivos_str + '\\"' + str(ajust[i]).replace('\n','').strip() + '\\":\\"' + str(ajust_rta[i]).replace('\n','').strip() + '\\",'
+                    if str(ajust_rta[i]).replace('\n','').strip() != "Sin informacion":
+                        motivos_str = motivos_str + '\\"' + str(ajust[i]).replace('\n','').strip() + '\\":\\"' + str(ajust_rta[i]).replace('\n','').strip() + '\\",'
 
                 motivos_str = motivos_str[:-1]
-                auxilio_json = '{'+ '"ubicacion":"' + ubicacion + '",' + '"latitud_gps":"' + lat + '",' + '"longitud_gps":"' + lon + '",' + '"motivo":"{' + motivos_str + '}",' + '"origen":"3"' +'}'
+                contacto_tel = str(messageProtocolEntity.getFrom(False))
+                auxilio_json = '{'+ '"ubicacion":"' + ubicacion + '",' + '"latitud_gps":"' + lat + '",' + '"longitud_gps":"' + lon + '",' + '"contacto":"' + contacto_tel + '",' + '"motivo":"{' + motivos_str + '}",' + '"origen":"3"' +'}'
                 # print(auxilio_json)
                 data = json.loads(auxilio_json)
                 r = requests.post('http://siemunlam.pythonanywhere.com/api/auxilios/', json=data)
@@ -388,7 +392,7 @@ class EchoLayer(YowInterfaceLayer):
                 codigo_seguimiento = respuesta_json['codigo_suscripcion']
                 # ME DEVUELVE EL CODIGO DE SUSCRIPCION
                 # codigo_seguimiento = 'JSD35D12' #ingresar_auxilio(messageProtocolEntity.getFrom(False)))
-                msj = 'Su auxilio ha sido ingresado al sistema. Puede realizar el seguimiento a través de SIEM Mobile con el código de seguimiento: ' + codigo_seguimiento
+                msj = 'Su auxilio ha sido ingresado al sistema. Puede realizar el seguimiento a través de SIEM Mobile con el código: ' + codigo_seguimiento
 
             elif respuesta.strip().upper() == 'BAJA':
                 # BORRO LAS INTERACCIONES PARA QUE PUEDA SOLICITAR OTROS AUXILIO
