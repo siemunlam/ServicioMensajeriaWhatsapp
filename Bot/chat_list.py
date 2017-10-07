@@ -23,6 +23,7 @@ class list_interactions():
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'w+')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 
 		
 	def add_ubicacion_esp(self, from_number, ubicacion):
@@ -30,6 +31,7 @@ class list_interactions():
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 		
 
 	def add_sintomas(self, from_number, sintomas):
@@ -37,6 +39,7 @@ class list_interactions():
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 
 
 	def add_sintomas_rta(self, from_number, sintomas):
@@ -44,6 +47,7 @@ class list_interactions():
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 
 
 	def add_ajustes(self, from_number, ajustes):
@@ -51,6 +55,7 @@ class list_interactions():
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 
 
 	def add_ajustes_rta(self, from_number, ajustes):
@@ -58,6 +63,7 @@ class list_interactions():
 		arch = 'files_chat/ajustes/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'w')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 
 
 	def add_cod_seg(self, from_number, codigo):
@@ -65,6 +71,7 @@ class list_interactions():
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		archivo_inicio = open(arch, 'a')
 		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
 
 
 	def add_ajustes_rta_finales(self, from_number):
@@ -276,17 +283,12 @@ class list_interactions():
 				archivo_inicio.write(line)
 		archivo_inicio.close()
 		
-		# AUXILIO
-		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		# AUXILIO Y AJUSTE
+		arch_auxilios = 'files_chat/auxilios/' + str(from_number) + '.txt'
+		arch_ajustes = 'files_chat/ajustes/' + str(from_number) + '.txt'
 		try:
-			os.remove(arch)
-		except:
-			pass
-
-		# AJUSTES
-		arch = 'files_chat/ajustes/' + str(from_number) + '.txt'
-		try:
-			os.remove(arch)
+			os.remove(arch_auxilios)
+			os.remove(arch_ajustes)
 		except:
 			pass
 

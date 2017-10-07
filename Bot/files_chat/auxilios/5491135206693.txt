@@ -1,7 +1,0 @@
--34.6972644;-58.5420069
-Santamaria 5262 3B rejas negras
-Sangrado;Traumatismo
-Intermedio;Politraumatismo
-Edad;Ubicación
-Mayor de 65;Vía publica
-JJJJJJJ1234
