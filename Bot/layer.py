@@ -41,6 +41,8 @@ class EchoLayer(YowInterfaceLayer):
             opciones.append(opcion_temp)
             opcion_temp = []
 
+		# ORDENO DE ACUERDO A LA PRIMERA COLUMNA PORQUE LA API ENVIA ALEATORIAMENTE
+        opciones = sorted(opciones, key=lambda x: x[0], reverse=False)
 
         # CARGO LAS OPCIONES DE LOS AJUSTES
         # opciones_ajustes = [['Edad','Menor a 3 años','Entre 3 y 65 años','Mayor de 65 años'], 
@@ -65,27 +67,56 @@ class EchoLayer(YowInterfaceLayer):
             opcion_temp.append("Sin informacion")
             opciones_ajustes.append(opcion_temp)
             opcion_temp = []
+			
+		# ORDENO DE ACUERDO A LA PRIMERA COLUMNA PORQUE LA API ENVIA ALEATORIAMENTE
+        opciones_ajustes = sorted(opciones_ajustes, key=lambda x: x[0], reverse=False)
 
         interacciones = list_interactions()
         #self.printMessage(messageProtocolEntity)
-
+		
         # TIEMPO RANDOM ENTRE LAS RESPUESTAS PARA QUE NO NOS BLOQUEE WHATSAPP
-        sleep(randint(3, 5)) # en segundos
+        sleep(randint(2, 4)) # en segundos
         
         # VERIFICO QUE NO HAYA PASADO POR LA ETAPA 1 DE LA SOLICITUD
         # SI ES EL PRIMER MENSAJE LE DOY LA BIENVENIDA Y LE SOLICITO LA UBICACIÓN
         if interacciones.is_in_inicio(int(messageProtocolEntity.getFrom(False))) == 0:
-            self.enviarMensaje(messageProtocolEntity, "Bienvenido a SIEM. Compartime tu ubicación, así sabremos a donde enviar la ambulancia.")
-            interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Saludo") 
-            print("PASO 1: (%s) Bienvenida." % str(messageProtocolEntity.getFrom(False)))
+            print("(%s) Bienvenida." % str(messageProtocolEntity.getFrom(False)))
+            self.enviarMensaje(messageProtocolEntity, "Hola, bienvenido a *_SIEM_*! Compartime tu ubicacion, asi sabremos a donde enviar la ambulancia.\nPuede reiniciar las opciones durante cualquier momento de la conversacion enviando la palabra *BAJA*.")
+            interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Saludo")
         
-        # SI NO ES EL PRIMER MENSAJE Y ME DIO LA UBICACIÓN LE MUESTRO LA LISTA DE MOTIVOS
-        elif interacciones.is_in_motivo(int(messageProtocolEntity.getFrom(False))) == 0 and messageProtocolEntity.getType() == 'media' and messageProtocolEntity.getMediaType() == "location":
-            print("PASO 3: (%s) Síntomas." % str(messageProtocolEntity.getFrom(False)))
-            interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Motivo")
+        # DURANTE CUALQUIER MOMENTO PUEDE CANCELAR EL AUXILIO Y REINICIAR LAS OPCIONES
+        elif self.is_text(messageProtocolEntity) == 1 and interacciones.is_in_inicio(int(messageProtocolEntity.getFrom(False))) == 1 and self.envio_baja(messageProtocolEntity) == 1:
+			# BORRO LAS INTERACCIONES PARA QUE PUEDA SOLICITAR OTROS AUXILIO
+            print("(%s) Cancela ingreso de auxilio." % str(messageProtocolEntity.getFrom(False)))
+            mensaje = messageProtocolEntity.getBody()
+            interacciones.eliminar_solicitud(int(messageProtocolEntity.getFrom(False)))
+            if mensaje.strip().upper() == 'BAJA':
+            	msj = 'Su auxilio ha sido cancelado.'
+            else:
+            	msj = 'Envie un mensaje para reiniciar la conversacion.'
+            self.enviarMensaje(messageProtocolEntity, msj) 
+		
+		# SI NO ES EL PRIMER MENSAJE Y NO ME DIO LA UBICACIÓN SE LA VUELVO A PEDIR 
+        elif interacciones.is_in_inicio(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_ubic(int(messageProtocolEntity.getFrom(False))) == 0 and self.is_location(messageProtocolEntity) == 0:
+            print("(%s) Error (No compartio coordenadas)." % str(messageProtocolEntity.getFrom(False)))
+            self.enviarMensaje(messageProtocolEntity, "Para enviar la ubicacion utilice el clip para datos adjuntos y luego seleccione *Enviar mi ubicacion actual*")
+			
+		# SI NO ES EL PRIMER MENSAJE Y ME DIO LA UBICACIÓN LE PIDO DETALLES ADICIONALES SOBRE LA DIRECCION
+        elif interacciones.is_in_inicio(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_ubic(int(messageProtocolEntity.getFrom(False))) == 0 and self.is_location(messageProtocolEntity) == 1:
+            print("(%s) Se solicita ubicacion especifica." % str(messageProtocolEntity.getFrom(False)))
             interacciones.add_ubicacion(messageProtocolEntity.getFrom(False),messageProtocolEntity.getLatitude(),messageProtocolEntity.getLongitude())
-            
-            msj = "Por favor, indique los síntomas que presenta. Responda con el número correspondiente a la opción separado por coma.\n\n"
+            msj = "Por favor, adicionalmente envie su direccion y cualquier detalle adicional para facilitar la localizacion.\nPor ejemplo: _Av. Rivadavia 1500 3 A puerta blanca_"
+            self.enviarMensaje(messageProtocolEntity, msj) 
+		
+		# SI ME DIO LA UBICACION Y LA UBICACION ESPECIFICA, MUESTRO LOS SINTOMAS
+        elif interacciones.is_in_ubic(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_ubic_espec(int(messageProtocolEntity.getFrom(False))) == 0 and self.is_text(messageProtocolEntity) == 1:
+            print("(%s) Se envia lista de sintomas." % str(messageProtocolEntity.getFrom(False)))
+            #interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Motivo")
+            mensaje = messageProtocolEntity.getBody()
+            mensaje = mensaje.strip()
+            interacciones.add_ubicacion_esp(messageProtocolEntity.getFrom(False),mensaje)
+
+            msj = "Por favor, indique los sintomas que presenta. Responda con el número correspondiente a la opcion separado por coma.\n\n"
 
             for i in range(0,len(opciones)):
                 msj = msj + str(i+1) + '. ' + opciones[i][0] + '\n'
@@ -93,15 +124,9 @@ class EchoLayer(YowInterfaceLayer):
             msj = msj + '\nPor ejemplo: 1,2 si posee ' + opciones[0][0] + ' y ' + opciones[1][0] + '.'
 
             self.enviarMensaje(messageProtocolEntity, msj) 
-        
-        # SI NO ES EL PRIMER MENSAJE Y ME DIO LA UBICACIÓN SE LA VUELVO A PEDIR 
-        elif interacciones.is_in_motivo(int(messageProtocolEntity.getFrom(False))) == 0 and messageProtocolEntity.getType() == 'text':
-            print("PASO 2: (%s) No envió ubicacion." % str(messageProtocolEntity.getFrom(False)))
-            self.enviarMensaje(messageProtocolEntity, "Para enviar la ubicación utilice el clip para datos adjuntos y luego seleccione Enviar mi ubicación actual.")
-        
+
         # SI YA ME ENVIÓ LA UBICACION VERIFICO QUE NO ME HAYA MANDADO LOS SINTOMAS
-        elif interacciones.is_in_motivo(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_motivo_rta(int(messageProtocolEntity.getFrom(False))) == 0:
-            print("PASO 4: (%s) Gravedad de cada síntoma." % str(messageProtocolEntity.getFrom(False)))
+        elif interacciones.is_in_ubic_espec(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_motivo_rta(int(messageProtocolEntity.getFrom(False))) == 0 and self.is_text(messageProtocolEntity) == 1:
             # VALIDAR QUE LA RESPUESTA SEA ALGUNA DE LAS OPCIONES
             mensaje = messageProtocolEntity.getBody()
             lista = mensaje.split(",")
@@ -124,8 +149,9 @@ class EchoLayer(YowInterfaceLayer):
                         error = 1
 
             if sintomas_rta == '' or error == 1:
-                msj = "No ha ingresado una opción válida. "
-                msj = msj + "Por favor, indique los síntomas que presenta. Responda con el número correspondiente a la opción separado por coma.\n\n"
+                print("(%s) Error (Opcion incorrecta de Sintoma)." % str(messageProtocolEntity.getFrom(False)))
+                msj = "No ha ingresado una opción valida. "
+                msj = msj + "Por favor, indique los sintomas que presenta. Responda con el numero correspondiente a la opcion separado por coma.\n\n"
 
                 for i in range(0,len(opciones)):
                     msj = msj + str(i+1) + '. ' + opciones[i][0] + '\n'
@@ -134,23 +160,30 @@ class EchoLayer(YowInterfaceLayer):
 
                 self.enviarMensaje(messageProtocolEntity, msj) 
             else:
+                print("(%s) Se envia gravedad de cada sintoma." % str(messageProtocolEntity.getFrom(False)))
                 #msj = 'Los sintomas que usted presenta son:'+ sintomas_rta + '.'
-                interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Motivo Respuesta")
+                #interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Motivo Respuesta")
                 interacciones.add_sintomas(messageProtocolEntity.getFrom(False),sintomas_rta.strip().replace(' ',';'))
                 
                 msj = "Indique la gravedad de cada sintoma separado por coma y en el orden provisto:\n"
 
+                # ELIMINO LOS DUPLICADOS PARA QUE NO MUESTRE OPCIONES SI PONGO EL MISMO SINTOMA VARIAS VECES
+                lista_2 = []
                 for i in lista:
-                    msj = msj + '\n' + opciones[int(i.strip())-1][0] + ':\n'
-                    for j in range(1,len(opciones[int(i.strip())-1])):
-                        msj = msj + str(j) + '. ' + opciones[int(i.strip())-1][j] + '\n'
+                    lista_2.append(abs(int(i.strip())))
+                    
+                lista = list(set(lista_2))
+
+                for i in lista:
+                    msj = msj + '\n' + opciones[i-1][0] + ':\n'
+                    for j in range(1,len(opciones[i-1])):
+                        msj = msj + str(j) + '. ' + opciones[i-1][j] + '\n'
                         j=j+1 
                 
                 self.enviarMensaje(messageProtocolEntity,msj) 
 
         # SI YA ME ENVIÓ LOS SINTOMAS Y NO LA GRAVEDAD DE CADA UNO
-        elif interacciones.is_in_motivo_rta(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_sintona_rta(int(messageProtocolEntity.getFrom(False))) == 0:
-            print("PASO 5: (%s) Primer ajuste." % str(messageProtocolEntity.getFrom(False)))
+        elif interacciones.is_in_motivo_rta(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_sintona_rta(int(messageProtocolEntity.getFrom(False))) == 0 and self.is_text(messageProtocolEntity) == 1:
             sintomas = interacciones.get_sintomas(int(messageProtocolEntity.getFrom(False)))
 
             lista = []
@@ -178,45 +211,48 @@ class EchoLayer(YowInterfaceLayer):
             if error == 0:
                 j = 0
                 for i in range(len(lista)):
-                    if int(sintomas_gravedad[j].strip()) > len(opciones[int(lista[i])-1])-1:
+                    if abs(int(sintomas_gravedad[j].strip())) > len(opciones[int(lista[i])-1])-1:
                         error = 1
                     j = j + 1
 
             if len(sintomas) != len(sintomas_gravedad):
-                msj = "No ha ingresado una opción válida. "
+                print("(%s) Error (Opcion erronea de gravedad de sintoma)." % str(messageProtocolEntity.getFrom(False)))
+                msj = "No ha ingresado una opción valida. "
                 msj = msj + "Indique la gravedad de cada sintoma separado por coma y en el orden provisto:\n"
 
                 for i in lista:
-                    msj = msj + '\n' + opciones[int(i)-1][0] + ':\n'
-                    for j in range(1,len(opciones[int(i)-1])):
-                        msj = msj + str(j) + '. ' + opciones[int(i)-1][j] + '\n'
+                    msj = msj + '\n' + opciones[abs(int(i))-1][0] + ':\n'
+                    for j in range(1,len(opciones[abs(int(i))-1])):
+                        msj = msj + str(j) + '. ' + opciones[ans(int(i))-1][j] + '\n'
                         j=j+1 
                 
                 self.enviarMensaje(messageProtocolEntity,msj)
 
-            elif error == 1:            
-                msj = "No ha ingresado una opción válida. "
+            elif error == 1:   
+                print("(%s) Error (Opción erronea de gravedad de sintoma)." % str(messageProtocolEntity.getFrom(False)))
+                msj = "No ha ingresado una opción valida. "
                 msj = msj + "Indique la gravedad de cada sintoma separado por coma y en el orden provisto:\n"
 
                 for i in lista:
-                    msj = msj + '\n' + opciones[int(i)-1][0] + ':\n'
-                    for j in range(1,len(opciones[int(i)-1])):
-                        msj = msj + str(j) + '. ' + opciones[int(i)-1][j] + '\n'
+                    msj = msj + '\n' + opciones[abs(int(i))-1][0] + ':\n'
+                    for j in range(1,len(opciones[abs(int(i))-1])):
+                        msj = msj + str(j) + '. ' + opciones[abs(int(i))-1][j] + '\n'
                         j=j+1 
                     
                 self.enviarMensaje(messageProtocolEntity,msj)
 
             else:
+                print("(%s) Se solicita primer ajuste." % str(messageProtocolEntity.getFrom(False)))
                 j=0
                 msj = "Ha seleccionado: \n"
                 sintomas_rta = ''
                 for i in lista:
-                    msj = msj + str(opciones[int(i-1)][0]) + ' -> ' + str(opciones[int(i-1)][int(sintomas_gravedad[int(j)])]) + '\n'
-                    sintomas_rta = sintomas_rta + ' ' + str(opciones[int(i-1)][int(sintomas_gravedad[int(j)])])
+                    msj = msj + str(opciones[int(i-1)][0]) + ' -> ' + str(opciones[int(i-1)][abs(int(sintomas_gravedad[int(j)]))]) + '\n'
+                    sintomas_rta = sintomas_rta + ' ' + str(opciones[int(i-1)][abs(int(sintomas_gravedad[int(j)]))])
                     j = j + 1
 
                 #self.enviarMensaje(messageProtocolEntity,msj)
-                msj = "Le haremos unas últimas preguntas. Responda el número correspondiente a la opción adecuada."
+                msj = "Le haremos unas ultimas preguntas. Responda el numero correspondiente a la opcion adecuada."
                 self.enviarMensaje(messageProtocolEntity,msj)
                 interacciones.add_sintomas_rta(messageProtocolEntity.getFrom(False),sintomas_rta.strip().replace(' ',';'))
                 ajustes = ''
@@ -239,8 +275,8 @@ class EchoLayer(YowInterfaceLayer):
 
 
         # SI YA ME ENVIÓ LOS SINTOMAS Y LA GRAVEDAD AHORA TENGO QUE PREGUNTARLE LOS FACTORES DE AJUSTE
-        elif interacciones.is_in_sintona_rta(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_ajustes_rta_final(int(messageProtocolEntity.getFrom(False))) == 0:
-            print("PASO 6: (%s) Otros ajustes." % str(messageProtocolEntity.getFrom(False)))
+        elif interacciones.is_in_sintona_rta(int(messageProtocolEntity.getFrom(False))) == 1 and interacciones.is_in_ajustes_rta_final(int(messageProtocolEntity.getFrom(False))) == 0 and self.is_text(messageProtocolEntity) == 1:
+            #print("(%s) Otros ajustes." % str(messageProtocolEntity.getFrom(False)))
 
             respuesta = messageProtocolEntity.getBody()
 
@@ -260,7 +296,7 @@ class EchoLayer(YowInterfaceLayer):
                     error = 1
                 
                 if error == 0:
-                    if int(respuesta.strip()) > len(opciones_ajustes[aj_rta])-1:
+                    if abs(int(respuesta.strip())) > len(opciones_ajustes[aj_rta])-1:
                         error = 1
 
                 #print(error)
@@ -268,24 +304,26 @@ class EchoLayer(YowInterfaceLayer):
                 if error == 0:
                     #Guardo respuesta
                     if aj_rta == 0:
-                        msj = opciones_ajustes[aj_rta][int(respuesta.strip())] #+ '&'
+                        msj = opciones_ajustes[aj_rta][abs(int(respuesta.strip()))] #+ '&'
                     else:
                         msj = ajustes_respuesta[0].replace('\n','')
                         for i in range(1,len(ajustes_respuesta)):
                             msj = msj + '&' + ajustes_respuesta[i].replace('\n','')
-                        msj = msj + '&' + opciones_ajustes[aj_rta][int(respuesta.strip())].replace('\n','')
+                        msj = msj + '&' + opciones_ajustes[aj_rta][abs(int(respuesta.strip()))].replace('\n','')
 
                     interacciones.add_ajustes_rta(messageProtocolEntity.getFrom(False),msj.strip().replace('&',';'))
                     
                     if aj_opc != aj_rta+1:
                         #Muestro opciones siguientes
+                        print("(%s) Se solicita otro ajuste." % str(messageProtocolEntity.getFrom(False)))
                         msj = opciones_ajustes[aj_rta+1][0] + ':\n'
                         for i in range(1,len(opciones_ajustes[aj_rta+1])):
                             msj = msj + str(i) + '. ' + str(opciones_ajustes[aj_rta+1][i]) + '\n'
                     else:
                         #Muestro resumen de pedido de auxilio
+                        print("(%s) Se envia resumen de auxilio." % str(messageProtocolEntity.getFrom(False)))
                         interacciones.add_ajustes_rta_finales(messageProtocolEntity.getFrom(False))
-                        msj = 'Auxilio a ingresar:\n\n'
+                        msj = '*Auxilio a ingresar:*\n'
 
                         file = 'files_chat/auxilios/' + str(messageProtocolEntity.getFrom(False)) + '.txt'
                         arch = open(file,'r')
@@ -303,34 +341,38 @@ class EchoLayer(YowInterfaceLayer):
                                 r = urllib.request.urlopen(req).read()
                                 rta = json.loads(r.decode('utf-8'))
                                 # print(rta)
-                                ubicacion = 'Ubicacion: ' + rta['results'][0]['formatted_address']
+                                ubicacion = '_Ubicacion:_ ' + rta['results'][0]['formatted_address']
                             if i == 2:
-                                sint = line.split(";")
+                                ubicacion_esp = line.replace('\n','').strip()
+                                ubicacion_especifica = '_Ubicacion especifica_: ' + ubicacion_esp
                             if i == 3:
-                                sint_grav = line.split(";")
+                                sint = line.split(";")
                             if i == 4:
-                                ajust = line.split(";")
+                                sint_grav = line.split(";")
                             if i == 5:
+                                ajust = line.split(";")
+                            if i == 6:
                                 ajust_rta = line.split(";")
                             i = i + 1
 
-                        msj = msj + ubicacion + '\n'
+                        msj = msj + ubicacion + '\n' + ubicacion_especifica + '\n'
 
                         for i in range(len(sint)):
-                            msj = msj + sint[i].replace('\n','') + ': ' + sint_grav[i].replace('\n','') + '\n'
+                            msj = msj + '_' + sint[i].replace('\n','') + '_: ' + sint_grav[i].replace('\n','') + '\n'
 
                         for i in range(len(ajust)):
                             if ajust_rta[i].replace('\n','') != "Sin informacion":
-                                msj = msj + ajust[i].replace('\n','') + ': ' + ajust_rta[i].replace('\n','') + '\n'
+                                msj = msj + '_' + ajust[i].replace('\n','') + '_: ' + ajust_rta[i].replace('\n','') + '\n'
 
-                        msj = msj + '\nPara confirmar envíe OK, de lo contrario envíe la palabra BAJA.'
+                        msj = msj + '\nPara confirmar envie *OK*, de lo contrario envie la palabra *BAJA*.'
 
                     self.enviarMensaje(messageProtocolEntity,msj)
 
                 if error == 1:
                     #Envió error
+                    print("(%s) Error (No envio opcion valida de ajuste)" % str(messageProtocolEntity.getFrom(False)))
                     #Muestro nuevamente opciones
-                    msj = "Por favor, responda el número correspondiente a la opción.\n\n"
+                    msj = "Por favor, responda el número correspondiente a la opcion.\n\n"
                     msj = msj + opciones_ajustes[aj_rta][0] + ':\n'
                     for i in range(1,len(opciones_ajustes[aj_rta])):
                         msj = msj + str(i) + '. ' + str(opciones_ajustes[aj_rta][i]) + '\n'
@@ -338,13 +380,13 @@ class EchoLayer(YowInterfaceLayer):
                     self.enviarMensaje(messageProtocolEntity,msj)
 
         # RESPONDIO TODAS LAS PREGUNTAS, SOLO QUEDA LA CONFIRMACION DEL AUXILIOS
-        elif interacciones.is_in_ajustes_rta_final(int(messageProtocolEntity.getFrom(False))) == 1 :
+        elif interacciones.is_in_ajustes_rta_final(int(messageProtocolEntity.getFrom(False))) == 1 and self.is_text(messageProtocolEntity) == 1 and interacciones.is_in_cod_seg(int(messageProtocolEntity.getFrom(False))) == 0:
             
             respuesta = messageProtocolEntity.getBody()
 
             if respuesta.strip().upper() == 'OK':
                 # INGRESO EL AUXILIO AL SISTEMA
-                print("PASO 7: (%s) Confirma ingreso de auxilio." % str(messageProtocolEntity.getFrom(False)))
+                print("(%s) Ingreso auxilio a SIEM." % str(messageProtocolEntity.getFrom(False)))
                 
                 # ARMO EL STRING CON FORMATO JSON
                 file = 'files_chat/auxilios/' + str(messageProtocolEntity.getFrom(False)) + '.txt'
@@ -364,12 +406,14 @@ class EchoLayer(YowInterfaceLayer):
                         rta = json.loads(r.decode('utf-8'))
                         ubicacion = rta['results'][0]['formatted_address']
                     if i == 2:
-                        sint = line.split(";")
+                        ubicacion_especifica = line.replace('\n','').strip()
                     if i == 3:
-                        sint_grav = line.split(";")
+                        sint = line.split(";")
                     if i == 4:
-                        ajust = line.split(";")
+                        sint_grav = line.split(";")
                     if i == 5:
+                        ajust = line.split(";")
+                    if i == 6:
                         ajust_rta = line.split(";")
                     i = i + 1
 
@@ -384,30 +428,59 @@ class EchoLayer(YowInterfaceLayer):
 
                 motivos_str = motivos_str[:-1]
                 contacto_tel = str(messageProtocolEntity.getFrom(False))
-                auxilio_json = '{'+ '"ubicacion":"' + ubicacion + '",' + '"latitud_gps":"' + lat + '",' + '"longitud_gps":"' + lon + '",' + '"contacto":"' + contacto_tel + '",' + '"motivo":"{' + motivos_str + '}",' + '"origen":"3"' +'}'
-                # print(auxilio_json)
+                auxilio_json = '{' + '"ubicacion":"' + ubicacion + '",' + '"ubicacion_especifica":"' + ubicacion_especifica + '",' + '"latitud_gps":"' + lat + '",' + '"longitud_gps":"' + lon + '",' + '"contacto":"' + contacto_tel + '",' + '"motivo":"{' + motivos_str + '}",' + '"origen":"3"' +'}'
+                #auxilio_json = '{' + '"ubicacion":"' + ubicacion + '",' + '"latitud_gps":"' + lat + '",' + '"longitud_gps":"' + lon + '",' + '"contacto":"' + contacto_tel + '",' + '"motivo":"{' + motivos_str + '}",' + '"origen":"3"' +'}'
+                #print(auxilio_json)
                 data = json.loads(auxilio_json)
-                r = requests.post('http://siemunlam.pythonanywhere.com/api/auxilios/', json=data)
-                respuesta_json = json.loads(r.text)
-                codigo_seguimiento = respuesta_json['codigo_suscripcion']
+                #print("pasa 1")
+                #r = requests.post('http://siemunlam.pythonanywhere.com/api/auxilios/', json=data)
+                #print("pasa 2")
+                #print(r.text)
+                #respuesta_json = json.loads(r.text)
+                #print("pasa 3")
                 # ME DEVUELVE EL CODIGO DE SUSCRIPCION
-                # codigo_seguimiento = 'JSD35D12' #ingresar_auxilio(messageProtocolEntity.getFrom(False)))
-                msj = 'Su auxilio ha sido ingresado al sistema. Puede realizar el seguimiento a través de SIEM Mobile con el código: ' + codigo_seguimiento
+                #codigo_seguimiento = respuesta_json['codigo_suscripcion']
+                codigo_seguimiento = 'JJJJJJJ1234'
+                # AGREGO EL CODIGO DE SEGUIMIENTO AL ARCHIVO
+                interacciones.add_cod_seg(int(messageProtocolEntity.getFrom(False)), codigo_seguimiento)
+                msj = 'Su auxilio ha sido ingresado a *_SIEM_* puede realizar el seguimiento a traves de *_SIEM Mobile_* con el codigo: ' + codigo_seguimiento
 
-            elif respuesta.strip().upper() == 'BAJA':
+            #elif respuesta.strip().upper() == 'BAJA':
                 # BORRO LAS INTERACCIONES PARA QUE PUEDA SOLICITAR OTROS AUXILIO
-                print("PASO 8: (%s) Cancela ingreso de auxilio." % str(messageProtocolEntity.getFrom(False)))
-                interacciones.eliminar_solicitud(int(messageProtocolEntity.getFrom(False)))
-                msj = 'Su auxilio ha sido cancelado.'
-
+                #print("(%s) Cancela ingreso de auxilio." % str(messageProtocolEntity.getFrom(False)))
+                #interacciones.eliminar_solicitud(int(messageProtocolEntity.getFrom(False)))
+                #msj = 'Su auxilio ha sido cancelado.'
+				
             else:
                 #RESPUESTA INCORRECTA, VUELVO A PREGUNTAR SI ESTA OK CON EL AUXILIO
-                print("PASO 9: (%s) Error en la confirmación." % str(messageProtocolEntity.getFrom(False)))
-                msj = 'Para confirmar el ingreso del auxilio envíe OK, de lo contrario envíe la palabra BAJA.'
+                print("(%s) Error (No confirma ingreso de auxilio)." % str(messageProtocolEntity.getFrom(False)))
+                msj = 'Para confirmar el ingreso del auxilio envie *OK*, de lo contrario envie la palabra *BAJA*.'
 
             self.enviarMensaje(messageProtocolEntity,msj)
+		
+		# YA INGRESO EL AUXILIO Y SIGUE MANDANDO MENSAJES, LE RECUERDO EL CODIGO DE SEGUIMIENTO
+        elif interacciones.is_in_cod_seg(int(messageProtocolEntity.getFrom(False))) == 1 and self.is_text(messageProtocolEntity) == 1:
+            print("(%s) Auxilio ya ingresado (Reenvio codigo de seguimiento)." % str(messageProtocolEntity.getFrom(False)))
+            # OBTENGO EL CODIGO DE SEGUIMIENTO
+            file = 'files_chat/auxilios/' + str(messageProtocolEntity.getFrom(False)) + '.txt'
+            arch = open(file,'r')
+            i = 1
+            for line in arch:
+                if i == 7:
+                    codigo_seguimiento = line.replace('\n','').strip()
+                i = i + 1
+
+            msj = 'Su auxilio ya ha sido ingresado a *_SIEM_*. Realice el seguimiento a traves de *_SIEM Mobile_* con el codigo: *_' + codigo_seguimiento
+            msj = msj + '_*\nSi desea ingresar un nuevo auxilio envíe *NUEVO* para reiniciar las opciones.'
+            self.enviarMensaje(messageProtocolEntity,msj)
+		
+        else:
+            print("(%s) Error (Formato inválido)." % str(messageProtocolEntity.getFrom(False)))
+            msj = 'Lo sentimos, el formato no es reconocido por *_SIEM_*. Intente nuevamente por favor.'
+            self.enviarMensaje(messageProtocolEntity,msj)
         
-        # ENVIO EL ACK Y LEIDO
+        
+		# ENVIO EL ACK Y LEIDO
         self.toLower(messageProtocolEntity.ack())
         self.toLower(messageProtocolEntity.ack(True))
 
@@ -440,3 +513,30 @@ class EchoLayer(YowInterfaceLayer):
         )
 
         self.toLower(outMessage)
+		
+	
+    def is_text(self, messageProtocolEntity):
+        retorno = 0
+        if messageProtocolEntity.getType() == 'text':
+            retorno = 1
+        return retorno
+	
+	
+    def is_location(self, messageProtocolEntity):
+        retorno = 0
+        if messageProtocolEntity.getType() == 'media':
+            if messageProtocolEntity.getMediaType() == "location":
+                retorno = 1
+        return retorno
+	
+	
+    def envio_baja(self, messageProtocolEntity):
+        retorno = 0
+        mensaje = messageProtocolEntity.getBody()
+		
+        if self.is_text(messageProtocolEntity) == 1:
+            if mensaje.strip().upper() == 'BAJA' or mensaje.strip().upper() == 'NUEVO':
+                retorno = 1
+        return retorno
+	
+	
