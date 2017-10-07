@@ -96,11 +96,20 @@ class EchoLayer(YowInterfaceLayer):
             print("(%s) Se solicita ubicacion especifica (referencia)." % str(messageProtocolEntity.getFrom(False)))
             interacciones.add_ubicacion(messageProtocolEntity.getFrom(False),messageProtocolEntity.getLatitude(),messageProtocolEntity.getLongitude())
 
-            # pegarle a la api de google y mostrarle la ubicacion
-            # mensaje = Con la ubicacion enviada hemos identificado la siguiente direccion: 
-            # Para mayor presicion, envie su direccion exacta. Por ejemplo: ...
+            # LE MUESTRO LA DIRECCION QUE SE OBTUVO CON LAS COORDENADAS Y LE PIDO MÁS DETALLE
+            lat = messageProtocolEntity.getLatitude()
+            lon = messageProtocolEntity.getLongitude()
+            url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + str(lat) + ',' + str(lon) + '&sensor=true&key=AIzaSyAtqaY7C-E04P3SMY9ANVaQMDsB2I24w8o'
+            req = urllib.request.Request(url)
+            r = urllib.request.urlopen(req).read()
+            rta = json.loads(r.decode('utf-8'))
+            ubi = rta['results'][0]['formatted_address']
 
-            msj = "Por favor, adicionalmente envíe su dirección y cualquier detalle adicional para facilitar la localización.\nPor ejemplo: _Av. Rivadavia 1500 3 A puerta blanca_"
+            location = rta['results'][0]['address_components'][1]['short_name'] + ' ' + rta['results'][0]['address_components'][0]['short_name'] + ', ' + rta['results'][0]['address_components'][2]['short_name'] + ', ' + rta['results'][0]['address_components'][5]['short_name']
+
+            msj = 'Con la ubicación enviada hemos identificado la siguiente dirección: *_' + location + '._*'
+            msj = msj + '\nPara mayor precisión, envíe su dirección exacta.\nPor ejemplo: _Av. Rivadavia 1500 3 A puerta blanca_'
+            # msj = "Por favor, adicionalmente envíe su dirección y cualquier detalle adicional para facilitar la localización.\nPor ejemplo: _Av. Rivadavia 1500 3 A puerta blanca_"
             self.enviarMensaje(messageProtocolEntity, msj) 
 		
 		# SI ME DIO LA UBICACION Y LA UBICACION ESPECIFICA, MUESTRO LOS SINTOMAS
@@ -337,7 +346,8 @@ class EchoLayer(YowInterfaceLayer):
                                 req = urllib.request.Request(url)
                                 r = urllib.request.urlopen(req).read()
                                 rta = json.loads(r.decode('utf-8'))
-                                ubicacion = '_Ubicación:_ ' + rta['results'][0]['formatted_address']
+                                location = rta['results'][0]['address_components'][1]['short_name'] + ' ' + rta['results'][0]['address_components'][0]['short_name'] + ', ' + rta['results'][0]['address_components'][2]['short_name'] + ', ' + rta['results'][0]['address_components'][5]['short_name']
+                                ubicacion = '_Ubicación:_ ' + location #rta['results'][0]['formatted_address']
                             if i == 2:
                                 ubicacion_esp = line.replace('\n','').strip()
                                 ubicacion_especifica = '_Referencia_: ' + ubicacion_esp
@@ -367,7 +377,7 @@ class EchoLayer(YowInterfaceLayer):
                 if error == 1:
                     #Envió error
                     print("(%s) Error (No envio opcion valida de ajuste)" % str(messageProtocolEntity.getFrom(False)))
-                    #Muestro nuevamente opciones
+                    # MUESTRO NUEVAMENTE LAS OPCIONES
                     msj = "Por favor, responda el número correspondiente a la opcion.\n\n"
                     msj = msj + opciones_ajustes[aj_rta][0] + ':\n'
                     for i in range(1,len(opciones_ajustes[aj_rta])):
@@ -397,7 +407,8 @@ class EchoLayer(YowInterfaceLayer):
                         req = urllib.request.Request(url)
                         r = urllib.request.urlopen(req).read()
                         rta = json.loads(r.decode('utf-8'))
-                        ubicacion = rta['results'][0]['formatted_address']
+                        location = rta['results'][0]['address_components'][1]['short_name'] + ' ' + rta['results'][0]['address_components'][0]['short_name'] + ', ' + rta['results'][0]['address_components'][2]['short_name'] + ', ' + rta['results'][0]['address_components'][5]['short_name']
+                        ubicacion = location #rta['results'][0]['formatted_address']
                     if i == 2:
                         ubicacion_especifica = line.replace('\n','').strip()
                     if i == 3:
