@@ -25,5 +25,12 @@ if __name__==  "__main__":
 	stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
 	try:
 		stack.loop()
+		# while 1 == 1:
+		# 	try:
+		# 		stack.loop()
+		# 	except:
+		# 		print("Formato no reconocido")
+		# 		Mostrar_error = EchoLayerError()
+		# 		Mostrar_error.onMessage()
 	except AuthError as e:
 		print("Authentication Error: %s" % e.message)
