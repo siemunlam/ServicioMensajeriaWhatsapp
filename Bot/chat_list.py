@@ -5,7 +5,7 @@ class list_interactions():
 	def __init__(self):
 		# LISTA CON NUMEROS QUE PASARON POR EL 1ER ESTADO
 		self.inicio = []
-		archivo_inicio = open('files_chat\inicio.txt', 'r')
+		archivo_inicio = open('files_chat/inicio.txt', 'r')
 		for line in archivo_inicio:
 			self.inicio.append(int(line))
 
@@ -14,7 +14,7 @@ class list_interactions():
 	def add_new_interaction(self, from_number, interaccion):
 		if interaccion == "Saludo":
 			self.inicio.append(int(from_number)) 
-			archivo_inicio = open('files_chat\inicio.txt', 'a')
+			archivo_inicio = open('files_chat/inicio.txt', 'a')
 			archivo_inicio.write("%s\n" % str(from_number))
 
 
@@ -300,11 +300,11 @@ class list_interactions():
 	def eliminar_solicitud(self, from_number):
 
 		# INICIO
-		archivo_inicio = open('files_chat\inicio.txt', 'r')
+		archivo_inicio = open('files_chat/inicio.txt', 'r')
 		lines_inicio = archivo_inicio.readlines()
 		archivo_inicio.close()
 
-		archivo_inicio = open('files_chat\inicio.txt', 'w')
+		archivo_inicio = open('files_chat/inicio.txt', 'w')
 		for line in lines_inicio:
 			if line!=str(from_number)+"\n":
 				archivo_inicio.write(line)

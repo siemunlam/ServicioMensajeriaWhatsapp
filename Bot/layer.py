@@ -82,7 +82,7 @@ class EchoLayer(YowInterfaceLayer):
         if interacciones.is_in_inicio(int(messageProtocolEntity.getFrom(False))) == 0:
             print("(%s) Bienvenida." % str(messageProtocolEntity.getFrom(False)))
             self.log("(" + str(messageProtocolEntity.getFrom(False)) + ") Bienvenida.")
-            self.enviarMensaje(messageProtocolEntity, "Hola, compartime tu ubicación así podremos asistirte. Hace clic en el botón 📎 o ➕ y luego en *Ubicación* Para cancelar la solicitud podés enviar la palabra *BAJA* en cualquier momento. *_Los mensajes de voz y videos serán omitidos._*")
+            self.enviarMensaje(messageProtocolEntity, "Bienvenido a _*SIEM*_, compartime tu ubicación así podremos asistirte. Hace clic en el botón 📎 o ➕ y luego en *Ubicación.*\nPara cancelar la solicitud podés enviar la palabra *BAJA* en cualquier momento. *_Los mensajes de voz y videos serán omitidos._*")
             interacciones.add_new_interaction(messageProtocolEntity.getFrom(False), "Saludo")
         
         # DURANTE CUALQUIER MOMENTO PUEDE CANCELAR EL AUXILIO Y REINICIAR LAS OPCIONES
@@ -119,7 +119,7 @@ class EchoLayer(YowInterfaceLayer):
             location = rta['results'][0]['address_components'][1]['short_name'] + ' ' + rta['results'][0]['address_components'][0]['short_name'] + ', ' + rta['results'][0]['address_components'][2]['short_name'] + ', ' + rta['results'][0]['address_components'][5]['short_name']
 
             msj = 'Con la ubicación enviada hemos identificado la siguiente dirección: *_' + location + '._*'
-            msj = msj + '\nPara mayor precisión, enviá tu dirección exacta y cualquier detalle adicional.\nPor ej: _Av. Rivadavia 1500 3 A puerta blanca_'
+            msj = msj + '\nSi es correcta enviá *OK*, de lo contrario enviá tu dirección exacta y cualquier detalle adicional.\nPor ej: _Av. Rivadavia 1500 3 A puerta blanca_'
             # msj = "Por favor, adicionalmente envíe su dirección y cualquier detalle adicional para facilitar la localización.\nPor ejemplo: _Av. Rivadavia 1500 3 A puerta blanca_"
             self.enviarMensaje(messageProtocolEntity, msj) 
 		

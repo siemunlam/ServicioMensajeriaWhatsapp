@@ -3,6 +3,7 @@ from layer import EchoLayer
 from yowsup.layers.auth import AuthError
 from yowsup.layers import YowLayerEvent
 from yowsup.layers.network import YowNetworkLayer
+#from yowsup.demos.cli.layer import YowsupCliLayer
 
 credentials = ("5491166036790", "EEu6kzGfv9x0adOjYWai0A+NF/E=") # replace with your phone and password
 
@@ -25,14 +26,8 @@ if __name__==  "__main__":
 	# stack.profile_setPicture("profile_pic/SIEM_Icono_3.png")
 	# stack.profile_setStatus("SIEM")
 	stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
+
 	try:
 		stack.loop()
-		# while 1 == 1:
-		# 	try:
-		# 		stack.loop()
-		# 	except:
-		# 		print("Formato no reconocido")
-		# 		Mostrar_error = EchoLayerError()
-		# 		Mostrar_error.onMessage()
 	except AuthError as e:
 		print("Authentication Error: %s" % e.message)
