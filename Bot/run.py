@@ -21,7 +21,9 @@ if __name__==  "__main__":
 		.push(EchoLayer)\
 		.build()
 
-	stack.setCredentials(credentials)	
+	stack.setCredentials(credentials)
+	# stack.profile_setPicture("profile_pic/SIEM_Icono_3.png")
+	# stack.profile_setStatus("SIEM")
 	stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))
 	try:
 		stack.loop()

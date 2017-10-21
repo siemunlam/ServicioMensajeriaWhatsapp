@@ -50,6 +50,14 @@ class list_interactions():
 		archivo_inicio.close()
 
 
+	def add_sintomas_rta_aux(self, from_number, ajustes):
+		linea = str(ajustes)
+		arch = 'files_chat/motivos_pc/' + str(from_number) + '.txt'
+		archivo_inicio = open(arch, 'w')
+		archivo_inicio.write("%s\n" % linea)
+		archivo_inicio.close()
+
+
 	def add_ajustes(self, from_number, ajustes):
 		linea = str(ajustes)
 		arch = 'files_chat/auxilios/' + str(from_number) + '.txt'
@@ -101,6 +109,7 @@ class list_interactions():
 				line.replace("\n","")
 				lista = line.split(";")
 			i = i+1
+		arch.close()
 		return lista
 
 
@@ -114,6 +123,7 @@ class list_interactions():
 				line.replace("\n","")
 				lista = line.split(";")
 			i = i+1
+		arch.close()
 		return lista
 
 
@@ -127,6 +137,7 @@ class list_interactions():
 				line.replace("\n","")
 				lista = line.split(";")
 			i = i+1
+		arch.close()
 		return lista
 
 
@@ -140,6 +151,21 @@ class list_interactions():
 				lista = line.split(";")
 		except ValueError:
 			lista = []
+		arch.close()
+		return lista
+
+
+	def get_sintomas_rta_aux(self, from_number):
+		lista = []
+		file = 'files_chat/motivos_pc/' + str(from_number) + '.txt'
+		try:
+			arch = open(file,'r')
+			for line in arch:
+				line.replace("\n","")
+				lista = line.split(";")
+		except ValueError:
+			lista = []
+		arch.close()
 		return lista
 
 
@@ -153,6 +179,7 @@ class list_interactions():
 				line.replace("\n","")
 				lista = line.split(";")
 			i = i+1
+		arch.close()
 		return lista
 
 
@@ -286,9 +313,11 @@ class list_interactions():
 		# AUXILIO Y AJUSTE
 		arch_auxilios = 'files_chat/auxilios/' + str(from_number) + '.txt'
 		arch_ajustes = 'files_chat/ajustes/' + str(from_number) + '.txt'
+		arch_motivos_pc = 'files_chat/motivos_pc/' + str(from_number) + '.txt'
 		try:
 			os.remove(arch_auxilios)
 			os.remove(arch_ajustes)
+			os.remove(arch_motivos_pc)
 		except:
 			pass
 
