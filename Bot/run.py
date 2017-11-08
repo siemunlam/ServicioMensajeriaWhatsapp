@@ -29,5 +29,10 @@ if __name__==  "__main__":
 
 	try:
 		stack.loop()
+		# while 1 == 1:
+		# 	try:
+		# 		stack.loop()
+		# 	except:
+		# 		print("Formato no reconocido")
 	except AuthError as e:
 		print("Authentication Error: %s" % e.message)

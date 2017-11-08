@@ -63,14 +63,26 @@ class EchoLayer(YowInterfaceLayer):
             opcion_temp.append(i)
             for j in valores[i]:
                 opcion_temp.append(j)
-            opcion_temp.append("Sin información")
+            opcion_temp.append("Omitir")
             opciones_ajustes.append(opcion_temp)
             opcion_temp = []
 			
 		# ORDENO DE ACUERDO A LA PRIMERA COLUMNA PORQUE LA API ENVIA ALEATORIAMENTE
         opciones_ajustes = sorted(opciones_ajustes, key=lambda x: x[0], reverse=False)
 
+        #####################################
+        #####################################
+        #####################################
+        #####################################
+        #####################################
+        #opciones_ajustes[0][0] = 'Rango Etario'
+
         #print(opciones_ajustes)
+        #####################################
+        #####################################
+        #####################################
+        #####################################
+        #####################################
 
         interacciones = list_interactions()
 		
@@ -303,9 +315,14 @@ class EchoLayer(YowInterfaceLayer):
                     self.enviarMensaje(messageProtocolEntity,msj)
                     
                     ajustes = ''
+                    j = 0
                     for i in range(0,len(opciones_ajustes)):
-                        ajustes = ajustes + ' ' + opciones_ajustes[i][0]
-                    interacciones.add_ajustes(messageProtocolEntity.getFrom(False),ajustes.strip().replace(' ',';'))
+                        if j == 0:
+                            ajustes = opciones_ajustes[i][0]
+                            j = 1
+                        else:
+                            ajustes = ajustes + '#' + opciones_ajustes[i][0]
+                    interacciones.add_ajustes(messageProtocolEntity.getFrom(False),ajustes.strip().replace('#',';'))
 
                     msj = opciones_ajustes[0][0] + ':\n'
                     for i in range(1,len(opciones_ajustes[0])):
@@ -428,7 +445,7 @@ class EchoLayer(YowInterfaceLayer):
                             msj = msj + '_' + sint[i].replace('\n','') + '_: ' + sint_grav[i].replace('\n','') + '\n'
 
                         for i in range(len(ajust)):
-                            if ajust_rta[i].replace('\n','') != "Sin información":
+                            if ajust_rta[i].replace('\n','') != "Omitir":
                                 msj = msj + '_' + ajust[i].replace('\n','') + '_: ' + ajust_rta[i].replace('\n','') + '\n'
 
                         msj = msj + '\nPara confirmar enviá *OK*, de lo contrario, enviá *BAJA*.'
@@ -489,7 +506,7 @@ class EchoLayer(YowInterfaceLayer):
                     motivos_str = motivos_str + '\\"' + str(sint[i]).replace('\n','').strip() + '\\":\\"' + str(sint_grav[i]).replace('\n','').strip() + '\\",'
 
                 for i in range(len(ajust)):
-                    if str(ajust_rta[i]).replace('\n','').strip() != "Sin información":
+                    if str(ajust_rta[i]).replace('\n','').strip() != "Omitir":
                         motivos_str = motivos_str + '\\"' + str(ajust[i]).replace('\n','').strip() + '\\":\\"' + str(ajust_rta[i]).replace('\n','').strip() + '\\",'
 
                 motivos_str = motivos_str[:-1]
@@ -503,7 +520,9 @@ class EchoLayer(YowInterfaceLayer):
                 #codigo_seguimiento = 'JJJJJJJ1234'
                 # AGREGO EL CODIGO DE SEGUIMIENTO AL ARCHIVO
                 interacciones.add_cod_seg(int(messageProtocolEntity.getFrom(False)), codigo_seguimiento)
-                msj = 'Tu auxilio ha sido ingresado.\nPodés ver el seguimiento desde la aplicación *_SIEM Mobile_* con el código: ' + codigo_seguimiento
+                msj = 'Tu auxilio ha sido ingresado.\nPodés ver el seguimiento desde la aplicación *_SIEM Mobile_* con el código:'# + codigo_seguimiento
+                self.enviarMensaje(messageProtocolEntity,msj)
+                msj = codigo_seguimiento
                 self.log("(" + str(messageProtocolEntity.getFrom(False)) + ") Ingreso auxilio a SIEM - " + codigo_seguimiento)
 
                 # ELIMINO LA SOLICUTUD PORQUE YA FUE INGRESADA A SIEM

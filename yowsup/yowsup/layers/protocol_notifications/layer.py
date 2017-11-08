@@ -37,14 +37,10 @@ class YowNotificationsProtocolLayer(YowProtocolLayer):
         elif node["type"] == "web":
             # Not implemented
             pass
-        else:
-            self.raiseErrorForNode(node)
+        #else:
+            #pass
+            # self.raiseErrorForNode(node)
 
         ack = OutgoingAckProtocolEntity(node["id"], "notification", node["type"], node["from"])
         self.toLower(ack.toProtocolTreeNode())
-
-
-
-
-
 
