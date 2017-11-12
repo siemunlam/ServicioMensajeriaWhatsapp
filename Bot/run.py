@@ -6,6 +6,7 @@ from yowsup.layers.network import YowNetworkLayer
 #from yowsup.demos.cli.layer import YowsupCliLayer
 
 credentials = ("5491166036790", "EEu6kzGfv9x0adOjYWai0A+NF/E=") # replace with your phone and password
+#credentials = ("5491168128304", "ahcSVXF7xcKL3cYEHITXEqhoWzQ=") # replace with your phone and password
 
 if __name__==  "__main__":
 	print("")
